@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-vuforia" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>cordova-vuforia</name>
+    <js-module name="cordova-vuforia" src="www/cordova-vuforia.js">
+        <clobbers target="cordova.plugins.cordova-vuforia" />
+    </js-module>
+</plugin>
