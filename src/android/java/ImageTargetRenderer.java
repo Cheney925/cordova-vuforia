@@ -10,14 +10,13 @@ package com.hopenrun.cordova.vuforia;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.app.Activity;
 import android.opengl.GLES10;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.opengl.Matrix;
 import android.util.Log;
-
-import com.hopenrun.cordova.vuforia.utils.MeshObject;
 import com.hopenrun.cordova.vuforia.utils.SampleMath;
 import com.hopenrun.cordova.vuforia.utils.SampleUtils;
 import com.hopenrun.cordova.vuforia.utils.Texture;
@@ -48,7 +47,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
     private static final String LOGTAG = "ImageTargetRenderer";
 
     private ApplicationSession vuforiaAppSession;
-    private final WeakReference<ImageTargets> mActivityRef;
+    private final WeakReference<ImageTargets> mImageTargetsRef;
     private final AppRenderer mAppRenderer;
 
     /** buffer holding the texture coordinates */
@@ -81,9 +80,9 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
             1.0f, 1.0f, 0.0f // V4 - top right
     };
 
-    public ImageTargetRenderer(ImageTargets activity, ApplicationSession session, String targets) {
+    public ImageTargetRenderer(Activity activity, ImageTargets imageTargets, ApplicationSession session, String targets) {
 
-        mActivityRef = new WeakReference<ImageTargets>(activity);
+        mImageTargetsRef = new WeakReference<ImageTargets>(imageTargets);
         vuforiaAppSession = session;
         mTargets = targets;
 
@@ -101,7 +100,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
 
         // SampleAppRenderer used to encapsulate the use of RenderingPrimitives setting
         // the device mode AR/VR and stereo mode
-        mAppRenderer = new AppRenderer(this, mActivityRef.get(), Device.MODE.MODE_AR, false, 0.01f , 5f);
+        mAppRenderer = new AppRenderer(this, activity, Device.MODE.MODE_AR, false, 0.01f , 5f);
 
     }
 
@@ -159,14 +158,14 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
         mAppRenderer.onConfigurationChanged(mIsActive);
 
         // Viewport
-        GLES10.glMatrixMode(GL10.GL_PROJECTION); // Select The Projection Matrix
-        GLES10.glLoadIdentity(); // Reset The Projection Matrix
-
-        // Calculate The Aspect Ratio Of The Window
-        GLU.gluPerspective(gl, 45.0f, (float) width / (float) height, 0.1f, 100.0f);
-
-        GLES10.glMatrixMode(GL10.GL_MODELVIEW); // Select The Modelview Matrix
-        GLES10.glLoadIdentity();
+//        GLES10.glMatrixMode(GL10.GL_PROJECTION); // Select The Projection Matrix
+//        GLES10.glLoadIdentity(); // Reset The Projection Matrix
+//
+//        // Calculate The Aspect Ratio Of The Window
+//        GLU.gluPerspective(gl, 45.0f, (float) width / (float) height, 0.1f, 100.0f);
+//
+//        GLES10.glMatrixMode(GL10.GL_MODELVIEW); // Select The Modelview Matrix
+//        GLES10.glLoadIdentity();
 
         initRendering();
 
@@ -177,17 +176,14 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
 
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
 
-        GLES10.glEnable(GL10.GL_TEXTURE_2D); // Enable Texture Mapping ( NEW )
-        GLES10.glShadeModel(GL10.GL_SMOOTH); // Enable Smooth Shading
-        GLES10.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-        GLES10.glClearDepthf(1.0f); // Depth Buffer Setup
-        GLES10.glEnable(GL10.GL_DEPTH_TEST); // Enables Depth Testing
-        GLES10.glDepthFunc(GL10.GL_LEQUAL); // The Type Of Depth Testing To Do
-
-        GLES10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
-
-        // Hide the Loading Dialog
-        mActivityRef.get().loadingDialogHandler.sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
+//        GLES10.glEnable(GL10.GL_TEXTURE_2D); // Enable Texture Mapping ( NEW )
+//        GLES10.glShadeModel(GL10.GL_SMOOTH); // Enable Smooth Shading
+//        GLES10.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
+//        GLES10.glClearDepthf(1.0f); // Depth Buffer Setup
+//        GLES10.glEnable(GL10.GL_DEPTH_TEST); // Enables Depth Testing
+//        GLES10.glDepthFunc(GL10.GL_LEQUAL); // The Type Of Depth Testing To Do
+//
+//        GLES10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
 
     }
 
@@ -241,9 +237,9 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
 //                textureIndex = trackable.getName().equalsIgnoreCase("stones") ? 0 : 1;
 //                textureIndex = trackable.getName().equalsIgnoreCase("tarmac") ? 2 : textureIndex;
 //
-//                textureIndex = mActivityRef.get().isDeviceTrackingActive() ? 3 : textureIndex;
+//                textureIndex = mImageTargetsRef.get().isDeviceTrackingActive() ? 3 : textureIndex;
 
-                renderModel(projectionMatrix, devicePoseMattix.getData(), modelMatrix.getData(), textureIndex, trackable.getName());
+//                renderModel(projectionMatrix, devicePoseMattix.getData(), modelMatrix.getData(), textureIndex, trackable.getName());
 
                 SampleUtils.checkGLError("Image Targets renderFrame");
             }
@@ -270,14 +266,14 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
         }
 
         if (textureIndex < 0) {
-            mActivityRef.get().imageFound(obj_name, 0);
+            mImageTargetsRef.get().imageFound(obj_name, 0);
             return;
         }
 
-        mActivityRef.get().imageFound(obj_name, 1);
+        mImageTargetsRef.get().imageFound(obj_name, 1);
 
         // Apply local transformation to our model
-        if (mActivityRef.get().isDeviceTrackingActive()) {
+        if (mImageTargetsRef.get().isDeviceTrackingActive()) {
             Matrix.translateM(modelMatrix, 0, 0, -0.06f, 0);
             Matrix.rotateM(modelMatrix, 0, 90.0f, 1.0f, 0, 0);
             Matrix.scaleM(modelMatrix, 0, BUILDING_SCALE, BUILDING_SCALE, BUILDING_SCALE);

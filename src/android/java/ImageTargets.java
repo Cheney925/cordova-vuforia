@@ -7,43 +7,23 @@ and other countries. Trademarks of QUALCOMM Incorporated are used with permissio
 
 package com.hopenrun.cordova.vuforia;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Vector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.BroadcastReceiver;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
+import android.webkit.WebView;
 import android.widget.RelativeLayout;
-import android.widget.Switch;
-import android.widget.TextView;
-import android.widget.ImageView;
-import android.widget.Button;
-import android.widget.Toast;
-//import android.R;
-//import com.example.hello.R;
-
 import com.vuforia.CameraDevice;
 import com.vuforia.DataSet;
 import com.vuforia.DeviceTracker;
@@ -57,29 +37,24 @@ import com.vuforia.TrackableList;
 import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.hopenrun.cordova.vuforia.utils.LoadingDialogHandler;
 import com.hopenrun.cordova.vuforia.utils.ApplicationGLView;
 import com.hopenrun.cordova.vuforia.utils.Texture;
 
-import com.hopenrun.cordova.vuforia.VuforiaPlugin;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class ImageTargets extends Activity implements ApplicationControl {
+public class ImageTargets implements ApplicationControl {
 
     private static final String LOGTAG = "ImageTargets";
     private static final String FILE_PROTOCOL = "file://";
 
-    ApplicationSession vuforiaAppSession;
-
     private DataSet mCurrentDataset;
     private int mCurrentDatasetSelectionIndex = 0;
-    private int mStartDatasetsIndex = 0;
-    private int mDatasetsNumber = 0;
     private ArrayList<String> mDatasetStrings = new ArrayList<String>();
+
+    private ApplicationSession vuforiaAppSession;
 
     // Our OpenGL view:
     private ApplicationGLView mGlView;
@@ -87,115 +62,37 @@ public class ImageTargets extends Activity implements ApplicationControl {
     // Our renderer:
     private ImageTargetRenderer mRenderer;
 
-    private GestureDetector mGestureDetector;
+    private Activity mActivity;
+    private ViewGroup mRootView;
+    private WebView webView;
 
     // The textures we will use for rendering:
     private Vector<Texture> mTextures;
 
     private boolean mSwitchDatasetAsap = false;
-    private boolean mFlash = false;
     private boolean mContAutofocus = false;
     private boolean mDeviceTracker = false;
 
-    private View mFlashOptionView;
-
     private RelativeLayout mUILayout;
 
-    private ActionReceiver vuforiaActionReceiver;
-
-    LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(this);
-
-    // Alert Dialog used to display SDK errors
-    private AlertDialog mErrorDialog;
-
-    boolean mIsDroidDevice = false;
+    private boolean mIsDroidDevice = false;
 
     // Array of target names
-    String mTargets = null;
+    private String mTargets = null;
 
     // Vuforia license key
-    String mLicenseKey;
+    private String mLicenseKey;
 
     // Holds the camera configuration to use upon resuming
     private int mCamera = CameraDevice.CAMERA_DIRECTION.CAMERA_DIRECTION_DEFAULT;
     private int mType = 0;
 
-    private class ActionReceiver extends BroadcastReceiver {
+    public ImageTargets(Activity activity) {
 
-        @Override
-        public void onReceive(Context ctx, Intent intent) {
+        mActivity = activity;
 
-            String receivedAction = intent.getExtras().getString(VuforiaPlugin.PLUGIN_ACTION);
-
-            if (receivedAction.equals(VuforiaPlugin.DISMISS_ACTION)) {
-                Vuforia.deinit();
-                finish();
-            } else if (receivedAction.equals(VuforiaPlugin.PAUSE_ACTION)) {
-                doStopTrackers();
-            } else if (receivedAction.equals(VuforiaPlugin.RESUME_ACTION)) {
-                doStartTrackers();
-            } else if (receivedAction.equals(VuforiaPlugin.SETMODE_ACTION)) {
-                int type = intent.getIntExtra("SET_MODE", 0);
-                setVuforiaType(type);
-            } else if (receivedAction.equals(VuforiaPlugin.SETIMAGEPARAM_ACTION)) {
-                String option = intent.getStringExtra("ACTION_DATA");
-                setVuforiaImageParam(option);
-            } else if (receivedAction.equals(VuforiaPlugin.UPDATEMODELPARAM_ACTION)) {
-                String option = intent.getStringExtra("ACTION_DATA");
-                updateVuforiaModelParam(option);
-            } else if (receivedAction.equals(VuforiaPlugin.GETUSEERDEFTARGETSFRAME_ACTION)) {
-                getUserDefinedTargetsFrameQuality();
-            } else if (receivedAction.equals(VuforiaPlugin.SETUSEERDEFTARGETSMODELPARAM_ACTION)) {
-                String option = intent.getStringExtra("ACTION_DATA");
-                setUserDefinedTargetsModelParam(option);
-            } else if (receivedAction.equals(VuforiaPlugin.CLEANUSERDEFTARGETSFRAME_ACTION)) {
-                cleanUserDefinedTargetsFrameQuality();
-            }
-        }
-
-    }
-
-    // Called when the activity first starts or the user navigates back to an
-    // activity.
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-
-        Log.d(LOGTAG, "onCreate");
-
-        super.onCreate(savedInstanceState);
-
-        //Remove title bar
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        //Remove notification bar
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        //Force Landscape
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
-        //Grab a reference to our Intent so that we can get the extra data passed into it
-        Intent intent = getIntent();
-
-        //Get the vuoria license key that was passed into the plugin
-        mLicenseKey = intent.getStringExtra("LICENSE_KEY");
-
-        try {
-            vuforiaAppSession = new ApplicationSession(this, mLicenseKey);
-        } catch(Exception e) {
-            Intent mIntent = new Intent();
-            mIntent.putExtra("name", "VUFORIA ERROR");
-            setResult(VuforiaPlugin.ERROR_RESULT, mIntent);
-            finish();
-        }
-
-        mCamera = intent.getIntExtra("CAMERA_INDEX", 0);
-        mType = intent.getIntExtra("TYPE_MODE", 0);
-
-        startLoadingAnimation();
-
-        vuforiaAppSession.initAR(this, ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-
-        mGestureDetector = new GestureDetector(this, new GestureListener(this));
+        mRootView = (ViewGroup) mActivity.findViewById(android.R.id.content);
+        webView = (WebView) mRootView.getChildAt(0);
 
         // Load any sample specific textures:
         mTextures = new Vector<Texture>();
@@ -204,172 +101,16 @@ public class ImageTargets extends Activity implements ApplicationControl {
 
     }
 
-    // Process Single Tap event to trigger autofocus
-    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
-
-        // Used to set autofocus one second after a manual focus is triggered
-        private final Handler autofocusHandler = new Handler();
-
-        private WeakReference<ImageTargets> activityRef;
-
-        private GestureListener(ImageTargets activity) {
-
-            activityRef = new WeakReference<ImageTargets>(activity);
-
-        }
-
-        @Override
-        public boolean onDown(MotionEvent e) {
-
-            return true;
-
-        }
-
-        // Process Single Tap event to trigger autofocus
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-
-            boolean result = CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO);
-            if (!result)
-                Log.e("SingleTapUp", "Unable to trigger focus");
-
-            // Generates a Handler to trigger continuous auto-focus
-            // after 1 second
-            autofocusHandler.postDelayed(new Runnable() {
-                public void run() {
-                    if (activityRef.get().mContAutofocus) {
-                        final boolean autofocusResult = CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO);
-
-                        if (!autofocusResult)
-                            Log.e("SingleTapUp", "Unable to re-enable continuous auto-focus");
-                    }
-                }
-            }, 1000L);
-
-            return true;
-        }
-
-    }
-
-    @Override
-    protected void onStart() {
-
-        if (vuforiaActionReceiver == null) {
-            vuforiaActionReceiver = new ActionReceiver();
-        }
-
-        IntentFilter intentFilter = new IntentFilter(VuforiaPlugin.PLUGIN_ACTION);
-        registerReceiver(vuforiaActionReceiver, intentFilter);
-
-        Log.d(LOGTAG, "onStart");
-
-        super.onStart();
-
-    }
-
-    @Override
-    protected void onStop() {
-
-        if (vuforiaActionReceiver != null) {
-            unregisterReceiver(vuforiaActionReceiver);
-        }
-
-        Log.d(LOGTAG, "onStop");
-
-        super.onStop();
-
-    }
-
-    // Called when the activity will start interacting with the user.
-    @Override
-    protected void onResume() {
-
-        Log.d(LOGTAG, "onResume");
-
-        super.onResume();
-
-        // This is needed for some Droid devices to force landscape
-        if (mIsDroidDevice) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        }
-
-        try {
-            vuforiaAppSession.resumeAR();
-        } catch (ApplicationException e) {
-            Log.e(LOGTAG, e.getString());
-        }
-
-        // Resume the GL view:
-        if (mGlView != null) {
-            mGlView.setVisibility(View.VISIBLE);
-            mGlView.onResume();
-        }
-
-    }
-
-    // Callback for configuration changes the activity handles itself
-    @Override
     public void onConfigurationChanged(Configuration config) {
-
-        Log.d(LOGTAG, "onConfigurationChanged");
-
-        super.onConfigurationChanged(config);
 
         vuforiaAppSession.onConfigurationChanged();
 
     }
 
-    // Called when the system is about to start resuming a previous activity.
-    @Override
-    protected void onPause() {
+    private int _R(String name, String defType) {
 
-        Log.d(LOGTAG, "onPause");
-
-        super.onPause();
-
-        if (mGlView != null) {
-            mGlView.setVisibility(View.INVISIBLE);
-            mGlView.onPause();
-        }
-
-        // Turn off the flash
-        if (mFlashOptionView != null && mFlash) {
-            // OnCheckedChangeListener is called upon changing the checked state
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                ((Switch) mFlashOptionView).setChecked(false);
-            } else {
-                ((CheckBox) mFlashOptionView).setChecked(false);
-            }
-        }
-
-        try {
-            vuforiaAppSession.pauseAR();
-        } catch (ApplicationException e) {
-            Log.e(LOGTAG, e.getString());
-        }
-
-    }
-
-    // The final call you receive before your activity is destroyed.
-    @Override
-    protected void onDestroy() {
-
-        Log.d(LOGTAG, "onDestroy");
-
-        super.onDestroy();
-
-        try {
-            vuforiaAppSession.stopAR();
-        } catch (ApplicationException e) {
-            Log.e(LOGTAG, e.getString());
-        }
-
-        // Unload texture:
-        mTextures.clear();
-        mTextures = null;
-
-        System.gc();
+        // Get the project's package name and a reference to it's resources
+        return mActivity.getApplication().getResources().getIdentifier(name, defType, mActivity.getApplication().getPackageName());
 
     }
 
@@ -381,37 +122,39 @@ public class ImageTargets extends Activity implements ApplicationControl {
         int stencilSize = 0;
         boolean translucent = Vuforia.requiresAlpha();
 
-        mGlView = new ApplicationGLView(this);
-        mGlView.init(translucent, depthSize, stencilSize);
+//        LayoutInflater inflater = LayoutInflater.from(mActivity.getApplicationContext());
+//        mUILayout = (RelativeLayout) inflater.inflate(_R("camera_overlay", "layout"), null, false);
 
-        mRenderer = new ImageTargetRenderer(this, vuforiaAppSession, mTargets);
-        mRenderer.updateTargetStrings(mTargets);
-        mRenderer.setTextures(mTextures);
-        mGlView.setRenderer(mRenderer);
+        // Gets a reference to the loading dialog
+//        loadingDialogHandler.mLoadingDialogContainer = mUILayout.findViewById(_R("loading_indicator", "id"));
 
-    }
-
-    private void startLoadingAnimation() {
-
-        // Get the project's package name and a reference to it's resources
-        String package_name = getApplication().getPackageName();
-        Resources resources = getApplication().getResources();
-
-        LayoutInflater inflater = LayoutInflater.from(this);
-
-        mUILayout = (RelativeLayout) inflater.inflate(resources.getIdentifier("camera_overlay", "layout", package_name), null, false);
+        mUILayout = new RelativeLayout(mActivity.getApplicationContext());
+        mUILayout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         mUILayout.setVisibility(View.VISIBLE);
         mUILayout.setBackgroundColor(Color.BLACK);
 
-        // Gets a reference to the loading dialog
-        loadingDialogHandler.mLoadingDialogContainer = mUILayout.findViewById(resources.getIdentifier("loading_indicator", "id", package_name));
+        mGlView = new ApplicationGLView(mActivity.getApplicationContext());
+        mGlView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        mGlView.init(translucent, depthSize, stencilSize);
 
-        // Shows the loading indicator at start
-        loadingDialogHandler.sendEmptyMessage(LoadingDialogHandler.SHOW_LOADING_DIALOG);
+        mRenderer = new ImageTargetRenderer(mActivity, this, vuforiaAppSession, mTargets);
+        mRenderer.updateTargetStrings(mTargets);
+        mRenderer.setTextures(mTextures);
+        mGlView.setRenderer(mRenderer);
 
-        // Adds the inflated layout to the view
-        addContentView(mUILayout, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        mRenderer.setActive(true);
+
+        // Now add the GL surface view. It is important
+        // that the OpenGL ES surface view gets added
+        // BEFORE the camera is started and video
+        // background is configured.
+        mUILayout.addView(mGlView);
+        mRootView.addView(mUILayout);
+
+        webView.bringToFront();
+        webView.setBackgroundColor(Color.TRANSPARENT);
+        webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
 
     }
 
@@ -520,67 +263,11 @@ public class ImageTargets extends Activity implements ApplicationControl {
     @Override
     public void onInitARDone(ApplicationException exception) {
 
-        if (exception == null) {
-            initApplicationAR();
+        initApplicationAR();
 
-            mRenderer.setActive(true);
+        vuforiaAppSession.startAR(mCamera);
 
-            // Now add the GL surface view. It is important
-            // that the OpenGL ES surface view gets added
-            // BEFORE the camera is started and video
-            // background is configured.
-            addContentView(mGlView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-
-            // Sets the UILayout to be drawn in front of the camera
-            mUILayout.bringToFront();
-
-            // Sets the layout background to transparent
-            mUILayout.setBackgroundColor(Color.TRANSPARENT);
-
-            try {
-                vuforiaAppSession.startAR(mCamera);
-            } catch (ApplicationException e) {
-                Log.e(LOGTAG, e.getString());
-            }
-        } else {
-            Log.e(LOGTAG, exception.getString());
-            showInitializationErrorMessage(exception.getString());
-        }
-    }
-
-    // Shows initialization error messages as System dialogs
-    public void showInitializationErrorMessage(String message) {
-
-        final String errorMessage = message;
-
-        runOnUiThread(new Runnable() {
-
-            public void run() {
-                if (mErrorDialog != null) {
-                    mErrorDialog.dismiss();
-                }
-
-                String package_name = getApplication().getPackageName();
-                Resources resources = getApplication().getResources();
-
-                // Generates an Alert Dialog to show the error message
-                AlertDialog.Builder builder = new AlertDialog.Builder(ImageTargets.this);
-                builder
-                    .setMessage(errorMessage)
-                    .setTitle("Error")
-                    .setCancelable(false)
-                    .setIcon(0)
-                    .setPositiveButton(resources.getIdentifier("button_OK", "string", package_name),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                finish();
-                            }
-                        });
-
-                mErrorDialog = builder.create();
-                mErrorDialog.show();
-            }
-        });
+        vuforiaAppSession.onResume();
 
     }
 
@@ -711,22 +398,109 @@ public class ImageTargets extends Activity implements ApplicationControl {
 
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-
-        return mGestureDetector.onTouchEvent(event);
-
-    }
-
     boolean isDeviceTrackingActive() {
 
         return mDeviceTracker;
 
     }
 
-    public void imageFound(String imageName, int status) {
+    public void setCameraIsAutofocus(boolean autofocus) {
 
-        VuforiaPlugin.sendImageFoundUpdate(imageName, status);
+        mContAutofocus = autofocus;
+
+    }
+
+    //init Vuforia
+    public boolean initVuforia(String vuforiaLicense) {
+
+        mLicenseKey = vuforiaLicense;
+
+        return true;
+
+    }
+
+    // Start our Vuforia activities
+    public boolean startVuforia(int camera, int type) {
+
+        mCamera = camera;
+        mType = type;
+
+        vuforiaAppSession = new ApplicationSession(this, mLicenseKey);
+
+        vuforiaAppSession.initAR(mActivity, ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+
+        // This is needed for some Droid devices to force landscape
+        if (mIsDroidDevice) {
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+
+        return true;
+
+    }
+
+    // Stop Vuforia
+    public boolean stopVuforia() {
+
+        Vuforia.deinit();
+
+        if (mGlView != null) {
+            mGlView.setVisibility(View.INVISIBLE);
+            mGlView.onPause();
+        }
+
+        vuforiaAppSession.onPause();
+
+        try {
+            vuforiaAppSession.stopAR();
+        } catch (ApplicationException e) {
+            Log.e(LOGTAG, e.getString());
+        }
+
+        mRootView.removeView(mUILayout);
+
+        webView.setBackgroundColor(Color.WHITE);
+
+        // Unload texture:
+        mTextures.clear();
+        mTextures = null;
+
+        return true;
+
+    }
+
+    // Stop Vuforia trackers
+    public boolean pauseVuforia() {
+
+        if (mGlView != null) {
+            mGlView.setVisibility(View.INVISIBLE);
+            mGlView.onPause();
+        }
+
+        vuforiaAppSession.onPause();
+
+        return doStopTrackers();
+
+    }
+
+    // Start Vuforia trackers
+    public boolean resumeVuforia() {
+
+        // This is needed for some Droid devices to force landscape
+        if (mIsDroidDevice) {
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+
+        vuforiaAppSession.onResume();
+
+        // Resume the GL view:
+        if (mGlView != null) {
+            mGlView.setVisibility(View.VISIBLE);
+            mGlView.onResume();
+        }
+
+        return doStartTrackers();
 
     }
 
@@ -855,6 +629,12 @@ public class ImageTargets extends Activity implements ApplicationControl {
             return false;
 
         return true;
+
+    }
+
+    public void imageFound(String imageName, int status) {
+
+        VuforiaPlugin.sendImageFoundUpdate(imageName, status);
 
     }
 
