@@ -1,3 +1,6 @@
 # cordova-vuforia
 A cordova plugin for vuforia.
-zhangjinxin
+
+It will supports for Android first.
+
+Still in development...
