@@ -137,7 +137,7 @@ CordovaVuforia.prototype.cleanUserDefinedTargetsFrameQuality = function (success
 }
 
 CordovaVuforia.prototype.onVuforiaFindChange = function (data) {
-    CordovaVuforia.fireDocumentEvent('CordovaVuforia.onVuforiaFindChange', data);
+    cordova.fireDocumentEvent('CordovaVuforia.onVuforiaFindChange', data);
 };
 
 if (!window.CordovaVuforia) {
