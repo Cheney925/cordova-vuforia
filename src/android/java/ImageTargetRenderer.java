@@ -20,6 +20,7 @@ import android.util.Log;
 import com.hopenrun.cordova.vuforia.utils.SampleMath;
 import com.hopenrun.cordova.vuforia.utils.SampleUtils;
 import com.hopenrun.cordova.vuforia.utils.Texture;
+import com.hopenrun.cordova.vuforia.utils.VuforiaImageInfo;
 import com.vuforia.Device;
 import com.vuforia.ImageTargetResult;
 import com.vuforia.Matrix44F;
@@ -63,7 +64,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
 
     private boolean mIsActive = false;
 
-    private String mTargets = "";
+    private VuforiaImageInfo mImageInfo;
 
     private float texture[] = {
             // Mapping coordinates for the vertices
@@ -80,11 +81,11 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
             1.0f, 1.0f, 0.0f // V4 - top right
     };
 
-    public ImageTargetRenderer(Activity activity, ImageTargets imageTargets, ApplicationSession session, String targets) {
+    public ImageTargetRenderer(Activity activity, ImageTargets imageTargets, ApplicationSession session, VuforiaImageInfo imageInfo) {
 
         mImageTargetsRef = new WeakReference<ImageTargets>(imageTargets);
         vuforiaAppSession = session;
-        mTargets = targets;
+        mImageInfo = imageInfo;
 
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(vertices.length * 4);
         byteBuffer.order(ByteOrder.nativeOrder());
@@ -108,8 +109,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
     @Override
     public void onDrawFrame(GL10 gl) {
 
-        if (!mIsActive)
-            return;
+        if (!mIsActive) return;
 
         // Call our function to render content
         mAppRenderer.render();
@@ -151,6 +151,10 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
 
         Log.d(LOGTAG, "GLRenderer.onSurfaceChanged");
 
+        // Call function to update rendering when render surface
+        // parameters have changed:
+        mImageTargetsRef.get().updateRendering();
+
         // Call Vuforia function to handle render surface size changes:
         vuforiaAppSession.onSurfaceChanged(width, height);
 
@@ -158,14 +162,14 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
         mAppRenderer.onConfigurationChanged(mIsActive);
 
         // Viewport
-//        GLES10.glMatrixMode(GL10.GL_PROJECTION); // Select The Projection Matrix
-//        GLES10.glLoadIdentity(); // Reset The Projection Matrix
-//
-//        // Calculate The Aspect Ratio Of The Window
-//        GLU.gluPerspective(gl, 45.0f, (float) width / (float) height, 0.1f, 100.0f);
-//
-//        GLES10.glMatrixMode(GL10.GL_MODELVIEW); // Select The Modelview Matrix
-//        GLES10.glLoadIdentity();
+        GLES10.glMatrixMode(GL10.GL_PROJECTION); // Select The Projection Matrix
+        GLES10.glLoadIdentity(); // Reset The Projection Matrix
+
+        // Calculate The Aspect Ratio Of The Window
+        GLU.gluPerspective(gl, 45.0f, (float) width / (float) height, 0.1f, 100.0f);
+
+        GLES10.glMatrixMode(GL10.GL_MODELVIEW); // Select The Modelview Matrix
+        GLES10.glLoadIdentity();
 
         initRendering();
 
@@ -176,14 +180,14 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
 
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
 
-//        GLES10.glEnable(GL10.GL_TEXTURE_2D); // Enable Texture Mapping ( NEW )
-//        GLES10.glShadeModel(GL10.GL_SMOOTH); // Enable Smooth Shading
-//        GLES10.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-//        GLES10.glClearDepthf(1.0f); // Depth Buffer Setup
-//        GLES10.glEnable(GL10.GL_DEPTH_TEST); // Enables Depth Testing
-//        GLES10.glDepthFunc(GL10.GL_LEQUAL); // The Type Of Depth Testing To Do
-//
-//        GLES10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
+        GLES10.glEnable(GL10.GL_TEXTURE_2D); // Enable Texture Mapping ( NEW )
+        GLES10.glShadeModel(GL10.GL_SMOOTH); // Enable Smooth Shading
+        GLES10.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
+        GLES10.glClearDepthf(1.0f); // Depth Buffer Setup
+        GLES10.glEnable(GL10.GL_DEPTH_TEST); // Enables Depth Testing
+        GLES10.glDepthFunc(GL10.GL_LEQUAL); // The Type Of Depth Testing To Do
+
+        GLES10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
 
     }
 
@@ -210,6 +214,9 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
         GLES20.glEnable(GLES20.GL_CULL_FACE);
         GLES20.glCullFace(GLES20.GL_BACK);
 
+        // Render the RefFree UI elements depending on the current state
+        mImageTargetsRef.get().render();
+
         // Read device pose from the state and create a corresponding view matrix (inverse of the device pose)
         if (state.getDeviceTrackableResult() != null && state.getDeviceTrackableResult().getStatus() != TrackableResult.STATUS.NO_POSE) {
             modelMatrix = Tool.convertPose2GLMatrix(state.getDeviceTrackableResult().getPose());
@@ -232,14 +239,14 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
                  * So, to stop weak matches such as 'two' within ["onetwothree", "two"] we wrap the term in
                  * speech marks such as '"two"'
                  **/
-//                Boolean looking_for = mTargets.toLowerCase().contains("\"" + obj_name.toLowerCase() + "\"");
-//
-//                textureIndex = trackable.getName().equalsIgnoreCase("stones") ? 0 : 1;
-//                textureIndex = trackable.getName().equalsIgnoreCase("tarmac") ? 2 : textureIndex;
-//
-//                textureIndex = mImageTargetsRef.get().isDeviceTrackingActive() ? 3 : textureIndex;
+                for (int i = 0; i < mImageInfo.current; i++) {
+                    if (trackable.getName().equalsIgnoreCase(mImageInfo.info[i].imageName)) {
+                        textureIndex = i;
+                        break;
+                    }
+                }
 
-//                renderModel(projectionMatrix, devicePoseMattix.getData(), modelMatrix.getData(), textureIndex, trackable.getName());
+                renderModel(projectionMatrix, devicePoseMattix.getData(), modelMatrix.getData(), textureIndex, trackable.getName());
 
                 SampleUtils.checkGLError("Image Targets renderFrame");
             }
@@ -319,9 +326,9 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer, AppRendererC
 
     }
 
-    public void updateTargetStrings(String targets) {
+    public void updateImageInfo(VuforiaImageInfo imageInfo) {
 
-        mTargets = targets;
+        mImageInfo = imageInfo;
 
     }
 

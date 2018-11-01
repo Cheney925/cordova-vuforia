@@ -13,25 +13,26 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.util.Log;
 import android.Manifest;
-import android.view.ViewGroup;
-import android.webkit.WebView;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VuforiaPlugin extends CordovaPlugin {
 
     private static final String LOGTAG = "CordovaVuforiaPlugin";
 
-    // Some public static variables used to communicate state
-    public static final String CAMERA = Manifest.permission.CAMERA;
+    /**
+     * 需要进行检测的权限数组
+     */
+    private String[] permissions = {
+
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
+
+    };
 
     // What access to the camera do we require?
-    private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 200;
-
-    // Save a copy of our starting vuforia context so that we can start reference it later is needs be
-    private static CallbackContext persistantVuforiaStartCallback;
-
-    // Some internal variables for storing state across methods
-    private static String ACTION;
-    private static JSONArray ARGS;
+    private static final int PERMISSON_REQUESTCODE = 9222;
 
     private static CordovaWebView cordovaWebView = null;
     private static Activity activity = null;
@@ -62,6 +63,18 @@ public class VuforiaPlugin extends CordovaPlugin {
 
         mImageTargets = new ImageTargets(cordova.getActivity());
         mImageTargets.setCameraIsAutofocus(false);
+
+        List<String> needRequestPermissons = new ArrayList<String>();
+
+        for (String perm : permissions) {
+            if (!cordova.hasPermission(perm)) {
+                needRequestPermissons.add(perm);
+            }
+        }
+
+        if (needRequestPermissons.size() > 0) {
+            cordova.requestPermissions(this, PERMISSON_REQUESTCODE, permissions);
+        }
 
         Log.d(LOGTAG, "Plugin initialized.");
 
@@ -129,39 +142,28 @@ public class VuforiaPlugin extends CordovaPlugin {
     // Start our Vuforia activities
     public boolean startVuforia(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
-        ACTION = action;
-        ARGS = args;
+        if (vuforiaStarted) return true;
 
-        // If we are starting Vuforia, set the public variable referencing our start callback for later use
-        VuforiaPlugin.persistantVuforiaStartCallback = callbackContext;
+        String option = args.getString(0);
 
-        // Check to see if we have permission to access the camera
-        if (cordova.hasPermission(CAMERA)) {
-            String option = args.getString(0);
+        JSONObject jsonObject = new JSONObject(option);
 
-            JSONObject jsonObject = new JSONObject(option);
+        // Get all of our ARGS out and into local variables
+        int camera = jsonObject.optInt("camera");
+        int type = jsonObject.optInt("type");
 
-            // Get all of our ARGS out and into local variables
-            int camera = jsonObject.optInt("camera");
-            int type = jsonObject.optInt("type");
+        // Launch a new activity with Vuforia in it. Expect it to return a result.
+        boolean result = mImageTargets.startVuforia(camera, type);
 
-            // Launch a new activity with Vuforia in it. Expect it to return a result.
-            boolean result = mImageTargets.startVuforia(camera, type);
-
-            if (result)
-                pluginResultCallback(PluginResult.Status.OK, "status", 1, callbackContext);
-            else
-                pluginResultCallback(PluginResult.Status.ERROR, "status", 0, callbackContext);
-
+        if (result) {
             vuforiaStarted = true;
-
-            return result;
+            pluginResultCallback(PluginResult.Status.OK, "status", 1, callbackContext);
         } else {
-            // Request the camera permission and handle the outcome.
-            cordova.requestPermission(this, CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE, CAMERA);
-
-            return false;
+            vuforiaStarted = false;
+            pluginResultCallback(PluginResult.Status.ERROR, "status", 0, callbackContext);
         }
+
+        return result;
 
     }
 
@@ -228,9 +230,11 @@ public class VuforiaPlugin extends CordovaPlugin {
     //set Vuforia work mode
     public boolean setVuforiaType(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
-        Log.d(LOGTAG, "ARGS: " + args);
+        String option = args.getString(0);
 
-        int type = args.getInt(0);
+        JSONObject jsonObject = new JSONObject(option);
+
+        int type = jsonObject.optInt("type");
 
         if (type < 0 || type > 8) {
             pluginResultCallback(PluginResult.Status.ERROR, "status", 0, callbackContext);
@@ -329,15 +333,10 @@ public class VuforiaPlugin extends CordovaPlugin {
 
         for (int r:grantResults) {
             // Is the permission denied for our video request?
-            if (r == PackageManager.PERMISSION_DENIED && requestCode == CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) {
-                // Send a plugin error
-                pluginResultCallback(PluginResult.Status.ERROR, "status", 0, persistantVuforiaStartCallback);
+            if (r == PackageManager.PERMISSION_DENIED && requestCode == PERMISSON_REQUESTCODE) {
                 return;
             }
         }
-
-        if (requestCode == CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE)
-            execute(ACTION, ARGS, persistantVuforiaStartCallback); // Re-call execute with all the same values as before (will re-check for permissions)
 
     }
 

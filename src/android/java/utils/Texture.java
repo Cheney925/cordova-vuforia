@@ -12,11 +12,13 @@ package com.hopenrun.cordova.vuforia.utils;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.util.Log;
 
 import com.vuforia.Image;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +66,8 @@ public class Texture {
     public static Texture loadTextureFromApk(String fileName) {
 
         try {
-            BufferedInputStream bufferedStream = new BufferedInputStream(new FileInputStream(fileName));
+            File file = new File(fileName);
+            BufferedInputStream bufferedStream = new BufferedInputStream(new FileInputStream(file));
             Bitmap bitMap = BitmapFactory.decodeStream(bufferedStream);
 
             int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
