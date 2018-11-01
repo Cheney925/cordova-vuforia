@@ -136,8 +136,8 @@ CordovaVuforia.prototype.cleanUserDefinedTargetsFrameQuality = function (success
     cordova.exec(success, error, this.pluginClass, 'cleanUserDefinedTargetsFrameQuality', []);
 }
 
-CordovaVuforia.prototype.onNetStatusChange = function (status, imageName) {
-    CordovaVuforia.fireDocumentEvent('VuforiaPlugin.onNetStatusChange', {
+CordovaVuforia.prototype.onVuforiaFindChange = function (status, imageName) {
+    CordovaVuforia.fireDocumentEvent('CordovaVuforia.onVuforiaFindChange', {
         status: status,
         imageName: imageName
     });
