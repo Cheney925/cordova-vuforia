@@ -104,27 +104,9 @@
         <!-- Include our resources -->
         <resource-file src="targets/PluginTest.dat" target="assets/PluginTest.dat" />
         <resource-file src="targets/PluginTest.xml" target="assets/PluginTest.xml" />
-        <resource-file src="targets/StonesAndChips.dat" target="assets/www/targets/StonesAndChips.dat" />
-        <resource-file src="targets/StonesAndChips.xml" target="assets/www/targets/StonesAndChips.xml" />
+        <resource-file src="targets/StonesAndChips.dat" target="assets/StonesAndChips.dat" />
+        <resource-file src="targets/StonesAndChips.xml" target="assets/StonesAndChips.xml" />
     </platform>
 
     <!-- ios -->
-    <platform name="ios">
-        <hook type="after_plugin_install" src="hooks/AfterPluginInstall.js" />
-        <hook type="before_plugin_uninstall" src="hooks/BeforePluginUninstall.js" />
-
-        <framework src="AVFoundation.framework" weak="true" />
-        <framework src="CoreGraphics.framework" weak="true" />
-        <framework src="CoreMedia.framework" weak="true" />
-        <framework src="CoreMotion.framework" weak="true" />
-        <framework src="CoreVideo.framework" weak="true" />
-        <framework src="Foundation.framework" weak="true" />
-        <framework src="OpenGLES.framework" weak="true" />
-        <framework src="QuartzCore.framework" weak="true" />
-        <framework src="Security.framework" weak="true" />
-        <framework src="SystemConfiguration.framework" weak="true" />
-        <framework src="UIKit.framework" weak="true" />
-
-        <source-file src="src/vuforia/ios/lib/arm/libVuforia.a" target-dir="libs" framework="true" />
-    </platform>
 </plugin>
