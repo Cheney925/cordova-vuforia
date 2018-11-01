@@ -1,4 +1,4 @@
-package com.hopenrun.cordova.vuforia.utils;
+package com.hoperun.cordova.vuforia.utils;
 
 public class VuforiaImageInfo {
 

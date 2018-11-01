@@ -5,7 +5,7 @@ Vuforia is a trademark of QUALCOMM Incorporated, registered in the United States
 and other countries. Trademarks of QUALCOMM Incorporated are used with permission.
 ===============================================================================*/
 
-package com.hopenrun.cordova.vuforia;
+package com.hoperun.cordova.vuforia;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -17,10 +17,10 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.opengl.Matrix;
 import android.util.Log;
-import com.hopenrun.cordova.vuforia.utils.SampleMath;
-import com.hopenrun.cordova.vuforia.utils.SampleUtils;
-import com.hopenrun.cordova.vuforia.utils.Texture;
-import com.hopenrun.cordova.vuforia.utils.VuforiaImageInfo;
+import com.hoperun.cordova.vuforia.utils.SampleMath;
+import com.hoperun.cordova.vuforia.utils.SampleUtils;
+import com.hoperun.cordova.vuforia.utils.Texture;
+import com.hoperun.cordova.vuforia.utils.VuforiaImageInfo;
 import com.vuforia.Device;
 import com.vuforia.ImageTargetResult;
 import com.vuforia.Matrix44F;
@@ -34,7 +34,7 @@ import com.vuforia.TrackerManager;
 import com.vuforia.VIDEO_BACKGROUND_REFLECTION;
 import com.vuforia.Vuforia;
 
-import com.hopenrun.cordova.vuforia.utils.LoadingDialogHandler;
+import com.hoperun.cordova.vuforia.utils.LoadingDialogHandler;
 
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;

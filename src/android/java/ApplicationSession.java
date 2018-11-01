@@ -8,7 +8,7 @@ countries.
 ===============================================================================*/
 
 
-package com.hopenrun.cordova.vuforia;
+package com.hoperun.cordova.vuforia;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;

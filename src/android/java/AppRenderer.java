@@ -7,7 +7,7 @@ Vuforia is a trademark of PTC Inc., registered in the United States and other
 countries.
 ===============================================================================*/
 
-package com.hopenrun.cordova.vuforia;
+package com.hoperun.cordova.vuforia;
 
 import android.app.Activity;
 import android.content.Context;
@@ -44,8 +44,8 @@ import com.vuforia.ViewList;
 
 import java.lang.ref.WeakReference;
 
-import com.hopenrun.cordova.vuforia.utils.SampleUtils;
-import com.hopenrun.cordova.vuforia.utils.VideoBackgroundShader;
+import com.hoperun.cordova.vuforia.utils.SampleUtils;
+import com.hoperun.cordova.vuforia.utils.VideoBackgroundShader;
 
 /**
  * The AppRenderer class handles the initialization and configuration of the

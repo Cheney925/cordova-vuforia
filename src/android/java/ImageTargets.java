@@ -5,7 +5,7 @@ Vuforia is a trademark of QUALCOMM Incorporated, registered in the United States
 and other countries. Trademarks of QUALCOMM Incorporated are used with permission.
 ===============================================================================*/
 
-package com.hopenrun.cordova.vuforia;
+package com.hoperun.cordova.vuforia;
 
 import java.util.ArrayList;
 import java.util.Vector;
@@ -40,10 +40,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.hopenrun.cordova.vuforia.utils.ImageInfo;
-import com.hopenrun.cordova.vuforia.utils.VuforiaImageInfo;
-import com.hopenrun.cordova.vuforia.utils.ApplicationGLView;
-import com.hopenrun.cordova.vuforia.utils.Texture;
+import com.hoperun.cordova.vuforia.utils.ImageInfo;
+import com.hoperun.cordova.vuforia.utils.VuforiaImageInfo;
+import com.hoperun.cordova.vuforia.utils.ApplicationGLView;
+import com.hoperun.cordova.vuforia.utils.Texture;
 
 public class ImageTargets implements ApplicationControl {
 

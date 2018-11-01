@@ -20,7 +20,7 @@
         <!-- Plugin Config -->
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="VuforiaPlugin" >
-                <param name="android-package" value="com.hopenrun.cordova.vuforia.VuforiaPlugin"/>
+                <param name="android-package" value="com.hoperun.cordova.vuforia.VuforiaPlugin"/>
             </feature>
         </config-file>
 
@@ -60,7 +60,7 @@
         <source-file src="src/vuforia/android/Vuforia.jar" target-dir="libs" />
         
         <!-- Plugin Source -->
-        <source-file src="src/android/VuforiaPlugin.java" target-dir="src/com/hopenrun/cordova/vuforia" />
+        <source-file src="src/android/VuforiaPlugin.java" target-dir="src/com/hoperun/cordova/vuforia" />
 
         <!-- Assets -->
         <resource-file src="src/android/res/drawable/devices.png" target="res/drawable/devices.png" />
@@ -81,29 +81,31 @@
 
         <resource-file src="src/android/res/layout/camera_overlay.xml" target="res/layout/camera_overlay.xml" />
 
-		<source-file src="src/android/java/AppRenderer.java" target-dir="src/com/hopenrun/cordova/vuforia" />
-		<source-file src="src/android/java/AppRendererControl.java" target-dir="src/com/hopenrun/cordova/vuforia" />
-        <source-file src="src/android/java/ImageTargets.java" target-dir="src/com/hopenrun/cordova/vuforia" />
-        <source-file src="src/android/java/ImageTargetRenderer.java" target-dir="src/com/hopenrun/cordova/vuforia" />
-        <source-file src="src/android/java/ApplicationControl.java" target-dir="src/com/hopenrun/cordova/vuforia" />
-        <source-file src="src/android/java/ApplicationException.java" target-dir="src/com/hopenrun/cordova/vuforia" />
-        <source-file src="src/android/java/ApplicationSession.java" target-dir="src/com/hopenrun/cordova/vuforia" />
-        <source-file src="src/android/java/RefFreeFrame.java" target-dir="src/com/hopenrun/cordova/vuforia" />
-        <source-file src="src/android/java/RefFreeFrameGL.java" target-dir="src/com/hopenrun/cordova/vuforia" />
+		<source-file src="src/android/java/AppRenderer.java" target-dir="src/com/hoperun/cordova/vuforia" />
+		<source-file src="src/android/java/AppRendererControl.java" target-dir="src/com/hoperun/cordova/vuforia" />
+        <source-file src="src/android/java/ImageTargets.java" target-dir="src/com/hoperun/cordova/vuforia" />
+        <source-file src="src/android/java/ImageTargetRenderer.java" target-dir="src/com/hoperun/cordova/vuforia" />
+        <source-file src="src/android/java/ApplicationControl.java" target-dir="src/com/hoperun/cordova/vuforia" />
+        <source-file src="src/android/java/ApplicationException.java" target-dir="src/com/hoperun/cordova/vuforia" />
+        <source-file src="src/android/java/ApplicationSession.java" target-dir="src/com/hoperun/cordova/vuforia" />
+        <source-file src="src/android/java/RefFreeFrame.java" target-dir="src/com/hoperun/cordova/vuforia" />
+        <source-file src="src/android/java/RefFreeFrameGL.java" target-dir="src/com/hoperun/cordova/vuforia" />
         
-        <source-file src="src/android/java/utils/LoadingDialogHandler.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
-        <source-file src="src/android/java/utils/MeshObject.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
-        <source-file src="src/android/java/utils/ApplicationGLView.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
-        <source-file src="src/android/java/utils/Texture.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
-        <source-file src="src/android/java/utils/SampleMath.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
-        <source-file src="src/android/java/utils/SampleUtils.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
-        <source-file src="src/android/java/utils/VideoBackgroundShader.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
-        <source-file src="src/android/java/utils/ImageInfo.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
-        <source-file src="src/android/java/utils/VuforiaImageInfo.java" target-dir="src/com/hopenrun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/LoadingDialogHandler.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/MeshObject.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/ApplicationGLView.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/Texture.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/SampleMath.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/SampleUtils.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/VideoBackgroundShader.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/ImageInfo.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
+        <source-file src="src/android/java/utils/VuforiaImageInfo.java" target-dir="src/com/hoperun/cordova/vuforia/utils" />
 
         <!-- Include our resources -->
         <resource-file src="targets/PluginTest.dat" target="assets/PluginTest.dat" />
         <resource-file src="targets/PluginTest.xml" target="assets/PluginTest.xml" />
+        <resource-file src="targets/StonesAndChips.dat" target="assets/www/targets/StonesAndChips.dat" />
+        <resource-file src="targets/StonesAndChips.xml" target="assets/www/targets/StonesAndChips.xml" />
     </platform>
 
     <!-- ios -->
