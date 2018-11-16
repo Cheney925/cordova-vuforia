@@ -65,7 +65,7 @@ CordovaVuforia.prototype.resumeVuforia = function (success, error) {
  * @param {*} success 成功回调
  * @param {*} error   失败回调
  */
-CordovaVuforia.prototype.setVuforiaType = function (options, success, error) {
+CordovaVuforia.prototype.setRecognitionType = function (options, success, error) {
     cordova.exec(success, error, this.pluginClass, 'setVuforiaType', [options]);
 }
 
@@ -82,25 +82,8 @@ CordovaVuforia.prototype.setVuforiaType = function (options, success, error) {
  * @param {*} success 成功回调
  * @param {*} error   失败回调
  */
-CordovaVuforia.prototype.setVuforiaImageParam = function (options, success, error) {
+CordovaVuforia.prototype.setImageTargetModel = function (options, success, error) {
     cordova.exec(success, error, this.pluginClass, 'setVuforiaImageParam', [options]);
-}
-
-/**
- * 更新本地识别模型
- * @param {*} options 传参
- * @param {List} options.target 识别对象列表
- * @param {List} options.target.targetList 需要识别的图片以及跟踪模型
- * @param {*} options.target.targetList.imageName 识别图片
- * @param {*} options.target.targetList.model 跟踪模型 矩阵、贴图
- * @param {*} options.target.targetList.model.matrix 矩阵
- * @param {*} options.target.targetList.model.map 贴图
- * @param {*} options.target.filepath 文件路径
- * @param {*} success 成功回调
- * @param {*} error   失败回调
- */
-CordovaVuforia.prototype.updateVuforiaModelParam = function (options, success, error) {
-    cordova.exec(success, error, this.pluginClass, 'updateVuforiaModelParam', [options]);
 }
 
 /**
@@ -108,7 +91,7 @@ CordovaVuforia.prototype.updateVuforiaModelParam = function (options, success, e
  * @param {*} success 成功回调
  * @param {*} error   失败回调
  */
-CordovaVuforia.prototype.getUserDefinedTargetsFrameQuality = function (success, error) {
+CordovaVuforia.prototype.getUserDefinedTarget = function (success, error) {
     cordova.exec(success, error, this.pluginClass, 'getUserDefinedTargetsFrameQuality', []);
 }
 
@@ -123,7 +106,7 @@ CordovaVuforia.prototype.getUserDefinedTargetsFrameQuality = function (success, 
  * @param {*} success 成功回调
  * @param {*} error   失败回调
  */
-CordovaVuforia.prototype.setUserDefinedTargetsModelParam = function (options, success, error) {
+CordovaVuforia.prototype.setUserDefinedTargetModel = function (options, success, error) {
     cordova.exec(success, error, this.pluginClass, 'setUserDefinedTargetsModelParam', [options]);
 }
 
@@ -132,12 +115,12 @@ CordovaVuforia.prototype.setUserDefinedTargetsModelParam = function (options, su
  * @param {*} success 成功回调
  * @param {*} error   失败回调
  */
-CordovaVuforia.prototype.cleanUserDefinedTargetsFrameQuality = function (success, error) {
+CordovaVuforia.prototype.removeUserDefinedTarget = function (success, error) {
     cordova.exec(success, error, this.pluginClass, 'cleanUserDefinedTargetsFrameQuality', []);
 }
 
-CordovaVuforia.prototype.onVuforiaFindChange = function (data) {
-    cordova.fireDocumentEvent('CordovaVuforia.onVuforiaFindChange', data);
+CordovaVuforia.prototype.onTargetFound = function (data) {
+    cordova.fireDocumentEvent('CordovaVuforia.onTargetFound', data);
 };
 
 if (!window.CordovaVuforia) {
