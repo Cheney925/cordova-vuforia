@@ -2,6 +2,16 @@
   "name": "cordova-vuforia",
   "description": "Cordova Vuforia Plugin",
   "version": "0.0.1",
+  "cordova": {
+    "id": "cordova-vuforia",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cheney925/cordova-vuforia.git"
+  },
   "keywords": [
     "cordova",
     "vuforia",
@@ -11,5 +21,12 @@
     "image",
     "recognition",
     "mattrayner"
-  ]
+  ],
+  "author": "Cheney Hu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cheney925/cordova-vuforia/issues"
+  },
+  "homepage": "https://github.com/Cheney925/cordova-vuforia#readme",
+  "private": false
 }

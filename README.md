@@ -1,5 +1,5 @@
 # cordova-vuforia
-Vuforia SDK 插件
+Vuforia SDK 插件（暂时只支持Android）
 
 ## 安装 Installation
 `cordova plugin add cordova-vuforia`
