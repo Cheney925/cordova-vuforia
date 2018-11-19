@@ -1,10 +1,11 @@
 # cordova-vuforia
-Vuforia SDK 插件（暂时只支持Android）
+Cordova Vuforia 插件（第一个版本暂时只支持Android）
+[English Doc.](https://github.com/Cheney925/cordova-vuforia/blob/master/README.en.md)
 
-## 安装 Installation
+## 安装
 `cordova plugin add cordova-vuforia`
 
-## 使用 Usage
+## 使用
 ### 初始化
 
 `CordovaVuforia.initVuforia(options, success, error)`
@@ -58,8 +59,8 @@ body.vuforia-show {
 * `options.matrix.scaleY` y轴缩放比
 * `options.matrix.scaleZ` z轴缩放比
 * `options.matrix.rotate` 旋转角度(逆时针)
-* `options.map` 贴图文件地址
-* `options.filepath` 识别配置文件地址
+* `options.map` 贴图文件地址，即模型文件地址，存放于`/models/`中
+* `options.filepath` 识别配置文件地址，存放于`/targets/`中，如`StonesAndChips.xml`
 * `success` 设置成功回调
 * `error` 设置失败回调
 
@@ -79,7 +80,7 @@ body.vuforia-show {
 * `options.matrix.scaleY` y轴缩放比
 * `options.matrix.scaleZ` z轴缩放比
 * `options.matrix.rotate` 旋转角度(逆时针)
-* `options.map` 贴图文件地址
+* `options.map` 贴图文件地址，即模型文件地址，存放于`/models/`中
 * `success` 设置成功回调
 * `error` 设置失败回调
 
@@ -88,8 +89,15 @@ body.vuforia-show {
 * `success` 清除成功回调
 * `error` 清除失败回调
 
-### 识别事件 CordovaVuforia.onTargetFound
+### 识别事件
 `document.addEventListener('CordovaVuforia.onTargetFound', function(data) {})`
 * `data` 识别之后的回调，包含status,imageName
 * `data.status` 识别状态 1-识别到目标 0-当前识别目标丢失
 * `data.imageName` 识别到目标的名字（仅在status为1时存在）
+
+### TODO
+* support iOS
+
+## Demo
+Ionic 3 Demo [https://github.com/ztl19930409/ionic-for-cordova-vuforia](https://github.com/ztl19930409/ionic-for-cordova-vuforia)
+
