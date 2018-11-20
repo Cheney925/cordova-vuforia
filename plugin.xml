@@ -2,8 +2,8 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
-        id="cordova-plugin-vuforia"
-        version="3.2.0">
+        id="cordova-vuforia"
+        version="0.0.1">
     <name>Vuforia</name>
     <description>Cordova Vuforia Plugin</description>
     <license>MIT</license>
@@ -90,7 +90,6 @@
         <resource-file src="targets/StonesAndChips.dat" target="assets/StonesAndChips.dat" />
         <resource-file src="targets/StonesAndChips.xml" target="assets/StonesAndChips.xml" />
         <resource-file src="models/cordova_vuforia_test.png" target="assets/models/cordova_vuforia_test.png" />
-        <resource-file src="models/cordova_vuforia_test2.png" target="assets/models/cordova_vuforia_test2.png" />
     </platform>
 
     <!-- ios -->
