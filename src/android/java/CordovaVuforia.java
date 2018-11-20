@@ -874,10 +874,10 @@ public class CordovaVuforia implements ApplicationControl {
             return false;
         }
 
-        Texture texture = Texture.loadTextureFromApk(new String("models/banana.obj"), mActivity.getAssets());
+        /*Texture texture = Texture.loadTextureFromApk(new String("models/banana.obj"), mActivity.getAssets());
         if (texture != null) {
             mTextures.add(texture);
-        }
+        }*/
 
         if (mRenderer != null) mRenderer.updateImageInfo(mImageInfo);
         if (mVirtualRenderer != null) mVirtualRenderer.setTextures(mTextures);
