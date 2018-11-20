@@ -41,6 +41,8 @@ public class Texture {
     public ByteBuffer mData;    // The pixel data.
     private int mChannels;      // The number of channels.
 
+    public String mModelPath = null;
+
     /** buffer holding the texture coordinates */
     private FloatBuffer textureBuffer;
 
@@ -99,15 +101,23 @@ public class Texture {
         InputStream inputStream;
 
         try {
-            inputStream = assets.open(fileName, AssetManager.ACCESS_BUFFER);
-            
-            BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
-            Bitmap bitMap = BitmapFactory.decodeStream(bufferedStream);
-            
-            int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
-            bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
-            
-            return loadTextureFromIntBuffer(data, bitMap.getWidth(), bitMap.getHeight());
+            if (fileName.contains(".obj")) {
+                Texture texture = new Texture();
+
+                texture.mModelPath = fileName;
+
+                return texture;
+            } else {
+                inputStream = assets.open(fileName, AssetManager.ACCESS_BUFFER);
+
+                BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
+                Bitmap bitMap = BitmapFactory.decodeStream(bufferedStream);
+
+                int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
+                bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
+
+                return loadTextureFromIntBuffer(data, bitMap.getWidth(), bitMap.getHeight());
+            }
         } catch (IOException e) {
             Log.e(LOGTAG, "Failed to log texture '" + fileName + "' from APK");
             Log.i(LOGTAG, e.getMessage());
@@ -120,13 +130,21 @@ public class Texture {
     public static Texture loadTextureFromApk(String fileName) {
 
         try {
-            BufferedInputStream bufferedStream = new BufferedInputStream(new FileInputStream(fileName));
-            Bitmap bitMap = BitmapFactory.decodeStream(bufferedStream);
+            if (fileName.equalsIgnoreCase(".obj")) {
+                Texture texture = new Texture();
 
-            int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
-            bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
+                texture.mModelPath = fileName;
 
-            return loadTextureFromIntBuffer(data, bitMap.getWidth(), bitMap.getHeight());
+                return texture;
+            } else {
+                BufferedInputStream bufferedStream = new BufferedInputStream(new FileInputStream(fileName));
+                Bitmap bitMap = BitmapFactory.decodeStream(bufferedStream);
+
+                int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
+                bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
+
+                return loadTextureFromIntBuffer(data, bitMap.getWidth(), bitMap.getHeight());
+            }
         } catch (IOException e) {
             Log.e(LOGTAG, "Failed to log texture '" + fileName + "' from APK");
             Log.i(LOGTAG, e.getMessage());
@@ -148,18 +166,20 @@ public class Texture {
             dataBytes[p * 4 + 2] = (byte) colour; // B
             dataBytes[p * 4 + 3] = (byte) (colour >>> 24); // A
         }
-        
+
         Texture texture = new Texture();
         texture.mWidth = width;
         texture.mHeight = height;
         texture.mChannels = 4;
-        
+
         texture.mData = ByteBuffer.allocateDirect(dataBytes.length).order(ByteOrder.nativeOrder());
         int rowSize = texture.mWidth * texture.mChannels;
         for (int r = 0; r < texture.mHeight; r++)
             texture.mData.put(dataBytes, rowSize * (texture.mHeight - 1 - r), rowSize);
         
         texture.mData.rewind();
+
+        texture.mModelPath = null;
 
         return texture;
 
@@ -174,6 +194,8 @@ public class Texture {
         texture.mData = image.getPixels();
 
         texture.mData.rewind();
+
+        texture.mModelPath = null;
 
         return texture;
 

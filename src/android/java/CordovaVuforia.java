@@ -113,6 +113,7 @@ public class CordovaVuforia implements ApplicationControl {
 
         mImageInfo.info = new ImageInfo[mImageInfo.total];
         for (int i = 0; i < mImageInfo.total; i++) {
+
             mImageInfo.info[i] = new ImageInfo();
             mImageInfo.info[i].matrix = new MatrixParam();
         }
@@ -840,9 +841,14 @@ public class CordovaVuforia implements ApplicationControl {
                         }
                     }
 
-                    Texture texture = Texture.loadTextureFromApk(map);
+                    Texture texture = Texture.loadTextureFromApk(map, mActivity.getAssets());
                     if (texture != null) {
                         mTextures.add(texture);
+                    } else {
+                        texture = Texture.loadTextureFromApk(map);
+                        if (texture != null) {
+                            mTextures.add(texture);
+                        }
                     }
 
                     if (mImageInfo.current < mImageInfo.total) {
@@ -866,6 +872,11 @@ public class CordovaVuforia implements ApplicationControl {
             }
         } catch(JSONException e) {
             return false;
+        }
+
+        Texture texture = Texture.loadTextureFromApk(new String("models/banana.obj"), mActivity.getAssets());
+        if (texture != null) {
+            mTextures.add(texture);
         }
 
         if (mRenderer != null) mRenderer.updateImageInfo(mImageInfo);
@@ -947,9 +958,14 @@ public class CordovaVuforia implements ApplicationControl {
             mTextures.clear();
 
             for (int j = 0; j < mImageInfo.current; ++j) {
-                Texture texture = Texture.loadTextureFromApk(mImageInfo.info[j].map);
+                Texture texture = Texture.loadTextureFromApk(mImageInfo.info[j].map, mActivity.getAssets());
                 if (texture != null) {
                     mTextures.add(texture);
+                } else {
+                    texture = Texture.loadTextureFromApk(mImageInfo.info[j].map);
+                    if (texture != null) {
+                        mTextures.add(texture);
+                    }
                 }
             }
         } catch(JSONException e) {
@@ -1037,9 +1053,14 @@ public class CordovaVuforia implements ApplicationControl {
                 Log.d(LOGTAG, "MRAY :: VUTORIA SCALEZ: " + scaleZ);
                 Log.d(LOGTAG, "MRAY :: VUTORIA ROTATE: " + rotate);
 
-                Texture texture = Texture.loadTextureFromApk(map);
+                Texture texture = Texture.loadTextureFromApk(map, mActivity.getAssets());
                 if (texture != null) {
                     mTextures.add(texture);
+                } else {
+                    texture = Texture.loadTextureFromApk(map);
+                    if (texture != null) {
+                        mTextures.add(texture);
+                    }
                 }
 
                 if (mImageInfo.current < mImageInfo.total) {

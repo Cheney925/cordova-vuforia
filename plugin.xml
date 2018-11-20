@@ -53,7 +53,12 @@
 		<source-file src="src/vuforia/android/jniLibs/armeabi-v7a/libVuforia.so" target-dir="libs/armeabi-v7a" />
         <source-file src="src/vuforia/android/jniLibs/x86/libVuforia.so" target-dir="libs/x86" />
         <source-file src="src/vuforia/android/Vuforia.jar" target-dir="libs" />
-        
+
+        <source-file src="src/loadobj/android/jniLibs/arm64-v8a/libLoadOBJAPI.so" target-dir="libs/arm64-v8a" />
+		<source-file src="src/loadobj/android/jniLibs/armeabi-v7a/libLoadOBJAPI.so" target-dir="libs/armeabi-v7a" />
+        <source-file src="src/loadobj/android/jniLibs/x86/libLoadOBJAPI.so" target-dir="libs/x86" />
+        <source-file src="src/loadobj/android/LoadOBJAPI.jar" target-dir="libs" />
+
         <!-- Plugin Source -->
         <source-file src="src/android/CordovaVuforiaPlugin.java" target-dir="src/com/hoperun/cordova/vuforia" />
 
@@ -84,6 +89,8 @@
         <resource-file src="targets/PluginTest.xml" target="assets/PluginTest.xml" />
         <resource-file src="targets/StonesAndChips.dat" target="assets/StonesAndChips.dat" />
         <resource-file src="targets/StonesAndChips.xml" target="assets/StonesAndChips.xml" />
+        <resource-file src="models/cordova_vuforia_test.png" target="assets/models/cordova_vuforia_test.png" />
+        <resource-file src="models/cordova_vuforia_test2.png" target="assets/models/cordova_vuforia_test2.png" />
     </platform>
 
     <!-- ios -->

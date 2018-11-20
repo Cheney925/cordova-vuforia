@@ -350,7 +350,7 @@ public class CordovaVuforiaPlugin extends CordovaPlugin {
         }
 
         if (activity != null) {
-            final String jsStr = String.format("window.CordovaVuforia.onVuforiaFindChange(%s)", jsonObj.toString());
+            final String jsStr = String.format("window.CordovaVuforia.onTargetFound(%s)", jsonObj.toString());
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

@@ -42,6 +42,8 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 import com.hoperun.cordova.vuforia.ARVideoRenderer;
+import com.hoperun.cordova.vuforia.LoadOBJAPI;
+
 import java.nio.FloatBuffer;
 import java.util.Vector;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -121,6 +123,8 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
         glHTexture = GLES20.glGetUniformLocation(mProgram,"vTexture");
         glHMatrix = GLES20.glGetUniformLocation(mProgram,"uMVPMatrix");
 
+        LoadOBJAPI.getInstance().arwSurfaceCreatedModle();
+
     }
 
     @Override
@@ -128,12 +132,15 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
 
         GLES20.glViewport(0, 0, width, height);
 
+        LoadOBJAPI.getInstance().arwSurfaceChangedModle(width, height);
+
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         if (mTexturesUpdateTag) {
             mTexturesUpdateTag = false;
@@ -147,6 +154,8 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
             mClearTexturesTag = false;
 
             if (mTextures != null) mTextures.clear();
+
+            LoadOBJAPI.getInstance().arwSurfaceDestroyedModle();
         }
 
         if (mUpdateDisplayTag) {
@@ -174,26 +183,30 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
         Log.d(LOGTAG, "initRendering");
 
         for (Texture t : mTextures) {
-            // 生成纹理
-            GLES20.glGenTextures(1, t.mTextureID, 0);
+            if (t.mModelPath == null) {
+                // 生成纹理
+                GLES20.glGenTextures(1, t.mTextureID, 0);
 
-            // 生成纹理
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.mTextureID[0]);
+                // 生成纹理
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.mTextureID[0]);
 
-            //设置缩小过滤为使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+                //设置缩小过滤为使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色
+                GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
 
-            //设置放大过滤为使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+                //设置放大过滤为使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色
+                GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 
-            //设置环绕方向S，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+                //设置环绕方向S，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
+                GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
 
-            //设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+                //设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
+                GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
-            //根据以上指定的参数，生成一个2D纹理
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, t.mWidth, t.mHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, t.mData);
+                //根据以上指定的参数，生成一个2D纹理
+                GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, t.mWidth, t.mHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, t.mData);
+            } else {
+                LoadOBJAPI.getInstance().arwAddModle(new String(t.mModelPath));
+            }
         }
 
     }
@@ -201,22 +214,27 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
     private void renderModel(float[] matrix, int textureIndex) {
 
         if (ARVideoRenderer.getTrackableResult() && textureIndex >= 0) {
-            GLES20.glUseProgram(mProgram);
+            if (mTextures.get(textureIndex).mModelPath == null) {
 
-            GLES20.glUniformMatrix4fv(glHMatrix,1,false, matrix,0);
+                GLES20.glUseProgram(mProgram);
 
-            GLES20.glEnableVertexAttribArray(glHPosition);
-            GLES20.glEnableVertexAttribArray(glHCoordinate);
+                GLES20.glUniformMatrix4fv(glHMatrix, 1, false, matrix, 0);
 
-            GLES20.glUniform1i(glHTexture, 0);
+                GLES20.glEnableVertexAttribArray(glHPosition);
+                GLES20.glEnableVertexAttribArray(glHCoordinate);
 
-            GLES20.glVertexAttribPointer(glHPosition, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
-            GLES20.glVertexAttribPointer(glHCoordinate, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
+                GLES20.glUniform1i(glHTexture, 0);
 
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures.get(textureIndex).mTextureID[0]);
+                GLES20.glVertexAttribPointer(glHPosition, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+                GLES20.glVertexAttribPointer(glHCoordinate, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
 
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP,0,4);
+                GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures.get(textureIndex).mTextureID[0]);
+
+                GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+            } else {
+                LoadOBJAPI.getInstance().arwDrawFrameModle(matrix, textureIndex);
+            }
         }
 
     }

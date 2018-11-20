@@ -240,15 +240,11 @@ public class ARVideoRenderer implements GLSurfaceView.Renderer, ApplicationRende
                 if (mCordovaVuforiaRef.get().mType == 0) {
                     Matrix.translateM(mMatrix, 0, posX, posY, posZ);
                     Matrix.scaleM(mMatrix, 0, scaleX, scaleY, scaleZ);
-                    if (rotate != 0.0f) {
-                        Matrix.rotateM(mMatrix, 0, rotate, 0.0f, 0.0f, 1.0f);
-                    }
+                    Matrix.rotateM(mMatrix, 0, -90 + rotate, 0.0f, 0.0f, 1.0f);
                 } else if (mCordovaVuforiaRef.get().mType == 1) {
                     Matrix.translateM(mMatrix, 0, posX, posY, posZ);
                     Matrix.scaleM(mMatrix, 0, kObjectScale, kObjectScale, kObjectScale);
-                    if (rotate != 0.0f) {
-                        Matrix.rotateM(mMatrix, 0, rotate, 0.0f, 0.0f, 1.0f);
-                    }
+                    Matrix.rotateM(mMatrix, 0, -90 + rotate, 0.0f, 0.0f, 1.0f);
                 }
 
                 // Combine device pose (view matrix) with model matrix
