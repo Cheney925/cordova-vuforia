@@ -2,6 +2,9 @@
 Cordova Vuforia 插件（第一个版本暂时只支持Android）
 [English Doc.](https://github.com/Cheney925/cordova-vuforia/blob/master/README.en.md)
 
+![npm](https://img.shields.io/npm/v/cordova-vuforia.svg)
+![taobaonpm](https://npm.taobao.org/badge/v/cordova-vuforia.svg)
+
 ## 安装
 `cordova plugin add cordova-vuforia`
 

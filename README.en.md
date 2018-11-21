@@ -1,6 +1,9 @@
 # cordova-vuforia
 Vuforia plugin for Cordova.(The first version only support Android.)
 
+![npm](https://img.shields.io/npm/v/cordova-vuforia.svg)
+![taobaonpm](https://npm.taobao.org/badge/v/cordova-vuforia.svg)
+
 ## Installation
 `cordova plugin add cordova-vuforia`
 
