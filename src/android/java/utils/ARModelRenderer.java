@@ -40,6 +40,7 @@ package com.hoperun.cordova.vuforia.utils;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
 import android.util.Log;
 import com.hoperun.cordova.vuforia.ARVideoRenderer;
 import com.hoperun.cordova.vuforia.LoadOBJAPI;
@@ -137,7 +138,7 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
     }
 
     @Override
-    public void onDrawFrame(GL10 gl) {
+    public synchronized void onDrawFrame(GL10 gl) {
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -164,7 +165,7 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
 
     }
 
-    public void setTextures(Vector<Texture> textures) {
+    public synchronized void setTextures(Vector<Texture> textures) {
 
         mTextures = textures;
 
@@ -172,7 +173,7 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
 
     }
 
-    public void clearTextures() {
+    public synchronized void clearTextures() {
 
         mClearTexturesTag = true;
 
@@ -203,7 +204,11 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
                 GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
                 //根据以上指定的参数，生成一个2D纹理
-                GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, t.mWidth, t.mHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, t.mData);
+                if (t.mBitmap != null) {
+                    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, t.mBitmap, 0);
+                } else if (t.mData != null) {
+                    GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, t.mWidth, t.mHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, t.mData);
+                }
             } else {
                 LoadOBJAPI.getInstance().arwAddModle(new String(t.mModelPath));
             }

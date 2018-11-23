@@ -36,10 +36,11 @@ public class Texture {
     private static final String LOGTAG = "Vuforia_Texture";
 
     public final int[] mTextureID = new int[1];
-    public int mWidth;          // The width of the texture.
-    public int mHeight;         // The height of the texture.
-    public ByteBuffer mData;    // The pixel data.
-    private int mChannels;      // The number of channels.
+    public int mWidth;               // The width of the texture.
+    public int mHeight;              // The height of the texture.
+    public ByteBuffer mData = null;  // The pixel data.
+    public Bitmap mBitmap = null;
+    private int mChannels;           // The number of channels.
 
     public String mModelPath = null;
 
@@ -116,7 +117,7 @@ public class Texture {
                 int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
                 bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
 
-                return loadTextureFromIntBuffer(data, bitMap.getWidth(), bitMap.getHeight());
+                return loadTextureFromIntBuffer(bitMap, data, bitMap.getWidth(), bitMap.getHeight());
             }
         } catch (IOException e) {
             Log.e(LOGTAG, "Failed to log texture '" + fileName + "' from APK");
@@ -143,7 +144,7 @@ public class Texture {
                 int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
                 bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
 
-                return loadTextureFromIntBuffer(data, bitMap.getWidth(), bitMap.getHeight());
+                return loadTextureFromIntBuffer(bitMap, data, bitMap.getWidth(), bitMap.getHeight());
             }
         } catch (IOException e) {
             Log.e(LOGTAG, "Failed to log texture '" + fileName + "' from APK");
@@ -153,7 +154,7 @@ public class Texture {
 
     }
 
-    private static Texture loadTextureFromIntBuffer(int[] data, int width, int height) {
+    private static Texture loadTextureFromIntBuffer(Bitmap bitmap, int[] data, int width, int height) {
 
         // Convert:
         int numPixels = width * height;
@@ -171,6 +172,8 @@ public class Texture {
         texture.mWidth = width;
         texture.mHeight = height;
         texture.mChannels = 4;
+
+        texture.mBitmap = bitmap;
 
         texture.mData = ByteBuffer.allocateDirect(dataBytes.length).order(ByteOrder.nativeOrder());
         int rowSize = texture.mWidth * texture.mChannels;

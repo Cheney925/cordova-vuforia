@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.opengl.GLES20;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -113,7 +114,6 @@ public class CordovaVuforia implements ApplicationControl {
 
         mImageInfo.info = new ImageInfo[mImageInfo.total];
         for (int i = 0; i < mImageInfo.total; i++) {
-
             mImageInfo.info[i] = new ImageInfo();
             mImageInfo.info[i].matrix = new MatrixParam();
         }
@@ -874,10 +874,10 @@ public class CordovaVuforia implements ApplicationControl {
             return false;
         }
 
-        /*Texture texture = Texture.loadTextureFromApk(new String("models/banana.obj"), mActivity.getAssets());
-        if (texture != null) {
-            mTextures.add(texture);
-        }*/
+//        Texture texture = Texture.loadTextureFromApk(new String("models/banana.obj"), mActivity.getAssets());
+//        if (texture != null) {
+//            mTextures.add(texture);
+//        }
 
         if (mRenderer != null) mRenderer.updateImageInfo(mImageInfo);
         if (mVirtualRenderer != null) mVirtualRenderer.setTextures(mTextures);

@@ -89,10 +89,6 @@ public class ApplicationSession implements UpdateCallbackInterface {
         // Apply screen orientation
         mActivityRef.get().setRequestedOrientation(screenOrientation);
 
-        // As long as this window is visible to the user, keep the device's
-        // screen turned on and bright:
-//        mActivityRef.get().getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
         // Determines whether to use OpenGL 2.0,
         // OpenGL 3.0, DirectX (UWP), or Metal (iOS)
         mVuforiaFlags = INIT_FLAGS.GL_20;
