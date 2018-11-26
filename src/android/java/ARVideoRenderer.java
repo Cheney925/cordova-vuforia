@@ -52,6 +52,8 @@ public class ARVideoRenderer implements GLSurfaceView.Renderer, ApplicationRende
     private final ApplicationSession vuforiaAppSession;
     private final ApplicationRenderer mAppRenderer;
 
+    private float mRotate = 0.0f;
+
     private VuforiaImageInfo mImageInfo;
 
     private Activity mActivity;
@@ -97,6 +99,8 @@ public class ARVideoRenderer implements GLSurfaceView.Renderer, ApplicationRende
 
         Log.d(LOGTAG, "GLRenderer.onSurfaceChanged");
 
+        GLES20.glViewport(0, 0, width, height);
+
         // Call function to update rendering when render surface
         // parameters have changed:
         mCordovaVuforiaRef.get().updateRendering();
@@ -109,6 +113,18 @@ public class ARVideoRenderer implements GLSurfaceView.Renderer, ApplicationRende
 
         // Define clear color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
+
+        android.content.res.Configuration config = mActivity.getResources().getConfiguration();
+
+        if (config.orientation == config.ORIENTATION_LANDSCAPE) {
+            if (mCordovaVuforiaRef.get().mType == 0) {
+                mRotate = 0.0f;
+            } else if (mCordovaVuforiaRef.get().mType == 1) {
+                mRotate = 90.0f;
+            }
+        } else if (config.orientation == config.ORIENTATION_PORTRAIT) {
+            mRotate = 0.0f;
+        }
 
     }
 
@@ -240,11 +256,11 @@ public class ARVideoRenderer implements GLSurfaceView.Renderer, ApplicationRende
                 if (mCordovaVuforiaRef.get().mType == 0) {
                     Matrix.translateM(mMatrix, 0, posX, posY, posZ);
                     Matrix.scaleM(mMatrix, 0, scaleX, scaleY, scaleZ);
-                    Matrix.rotateM(mMatrix, 0, 90 + rotate, 0.0f, 0.0f, 1.0f);
+                    Matrix.rotateM(mMatrix, 0, 90.0f + mRotate + rotate, 0.0f, 0.0f, 1.0f);
                 } else if (mCordovaVuforiaRef.get().mType == 1) {
                     Matrix.translateM(mMatrix, 0, posX, posY, posZ);
                     Matrix.scaleM(mMatrix, 0, scaleX, scaleY, scaleZ);
-                    Matrix.rotateM(mMatrix, 0, 90 + rotate, 0.0f, 0.0f, 1.0f);
+                    Matrix.rotateM(mMatrix, 0, 90.0f + mRotate + rotate, 0.0f, 0.0f, 1.0f);
                 }
 
                 // Combine device pose (view matrix) with model matrix

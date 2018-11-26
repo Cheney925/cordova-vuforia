@@ -85,7 +85,6 @@ public class ApplicationRenderer {
 
     // Stores orientation
     private boolean mIsPortrait = false;
-    private boolean mInitialized = false;
 
     public ApplicationRenderer(ApplicationRendererControl renderingInterface, Activity activity, int deviceMode, boolean stereo, float nearPlane, float farPlane) {
 
@@ -130,9 +129,6 @@ public class ApplicationRenderer {
     // and we need to update the rendering primitives
     public void onConfigurationChanged(boolean isARActive) {
 
-        if (mInitialized)
-            return;
-
         updateActivityOrientation();
         storeScreenDimensions();
 
@@ -140,8 +136,6 @@ public class ApplicationRenderer {
             configureVideoBackground();
 
         updateRenderingPrimitives();
-
-        mInitialized = true;
 
     }
 
@@ -169,7 +163,6 @@ public class ApplicationRenderer {
 
             vbVertexHandle = GLES20.glGetAttribLocation(vbShaderProgramID, "vertexPosition");
             vbTexCoordHandle = GLES20.glGetAttribLocation(vbShaderProgramID, "vertexTexCoord");
-            vbProjectionMatrixHandle = GLES20.glGetUniformLocation(vbShaderProgramID, "projectionMatrix");
             vbTexSampler2DHandle = GLES20.glGetUniformLocation(vbShaderProgramID, "texSampler2D");
 
             // Stop using the program
@@ -301,8 +294,7 @@ public class ApplicationRenderer {
         GLES20.glUniformMatrix4fv(vbProjectionMatrixHandle, 1, false, vbProjectionMatrix, 0);
 
         // Then, we issue the render call
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, vbMesh.getNumTriangles() * 3, GLES20.GL_UNSIGNED_SHORT,
-                vbMesh.getTriangles().asShortBuffer());
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, vbMesh.getNumTriangles() * 3, GLES20.GL_UNSIGNED_SHORT, vbMesh.getTriangles().asShortBuffer());
 
         // Finally, we disable the vertex arrays
         GLES20.glDisableVertexAttribArray(vbVertexHandle);

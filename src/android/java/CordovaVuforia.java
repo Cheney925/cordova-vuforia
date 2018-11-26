@@ -686,6 +686,8 @@ public class CordovaVuforia implements ApplicationControl {
         mDatasetStrings.clear();
         mImageInfo.current = 0;
 
+        mVirtualLayout = null;
+
         Vuforia.deinit();
 
         System.gc();

@@ -31,11 +31,15 @@ public class ARVideoDisplayView extends GLSurfaceView {
 
         super(context);
 
+        setEGLContextClientVersion(2);
+
     }
 
     public ARVideoDisplayView(Context context, AttributeSet attribute) {
 
         super(context, attribute);
+
+        setEGLContextClientVersion(2);
 
     }
 
@@ -50,19 +54,19 @@ public class ARVideoDisplayView extends GLSurfaceView {
         // If we want a translucent one, we should change the surface's
         // format here, using PixelFormat.TRANSLUCENT for GL Surfaces
         // is interpreted as any 32-bit surface with alpha by SurfaceFlinger.
-        
+
         Log.i(LOGTAG, "Using OpenGL ES 2.0");
         Log.i(LOGTAG, "Using " + (translucent ? "translucent" : "opaque") + " GLView, depth buffer size: " + depth + ", stencil size: " + stencil);
-        
+
         // If required set translucent format to allow camera image to
         // show through in the background
         if (translucent) {
             this.getHolder().setFormat(PixelFormat.TRANSLUCENT);
         }
-        
+
         // Setup the context factory for 2.0 rendering
         setEGLContextFactory(new ContextFactory());
-        
+
         // We need to choose an EGLConfig that matches the format of
         // our surface exactly. This is going to be done in our
         // custom config chooser. See ConfigChooser class definition
@@ -70,7 +74,7 @@ public class ARVideoDisplayView extends GLSurfaceView {
         setEGLConfigChooser(translucent ? new ConfigChooser(8, 8, 8, 8, depth, stencil) : new ConfigChooser(5, 6, 5, 0, depth, stencil));
 
     }
-    
+
     // Creates OpenGL contexts.
     private static class ContextFactory implements GLSurfaceView.EGLContextFactory {
 
