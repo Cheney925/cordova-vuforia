@@ -53,6 +53,7 @@ public class ARVideoRenderer implements GLSurfaceView.Renderer, ApplicationRende
     private final ApplicationRenderer mAppRenderer;
 
     private float mRotate = 0.0f;
+    private int rotation = 0;
 
     private VuforiaImageInfo mImageInfo;
 
@@ -114,17 +115,7 @@ public class ARVideoRenderer implements GLSurfaceView.Renderer, ApplicationRende
         // Define clear color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
 
-        android.content.res.Configuration config = mActivity.getResources().getConfiguration();
-
-        if (config.orientation == config.ORIENTATION_LANDSCAPE) {
-            if (mCordovaVuforiaRef.get().mType == 0) {
-                mRotate = 0.0f;
-            } else if (mCordovaVuforiaRef.get().mType == 1) {
-                mRotate = 90.0f;
-            }
-        } else if (config.orientation == config.ORIENTATION_PORTRAIT) {
-            mRotate = 0.0f;
-        }
+        rotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
 
     }
 
@@ -250,6 +241,24 @@ public class ARVideoRenderer implements GLSurfaceView.Renderer, ApplicationRende
                         scaleZ = kObjectScale;
                         rotate = 0.0f;
                     }
+                }
+
+                if (rotation == 0) {
+                    mRotate = 0.0f;
+                } else if (rotation == 1) {
+                    if (mCordovaVuforiaRef.get().mType == 0) {
+                        mRotate = 0.0f;
+                    } else if (mCordovaVuforiaRef.get().mType == 1) {
+                        mRotate = -90.0f;
+                    }
+                } else if (rotation == 3) {
+                    if (mCordovaVuforiaRef.get().mType == 0) {
+                        mRotate = 0.0f;
+                    } else if (mCordovaVuforiaRef.get().mType == 1) {
+                        mRotate = 90.0f;
+                    }
+                } else {
+                    mRotate = 0.0f;
                 }
 
                 // Apply local transformation to our model
