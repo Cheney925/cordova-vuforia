@@ -18,6 +18,10 @@ import android.util.Log;
 
 import com.vuforia.Image;
 
+import org.obj2opengl.v3.Obj2OpenGL;
+import org.obj2opengl.v3.model.OpenGLModelData;
+import org.obj2opengl.v3.model.RawOpenGLModel;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,7 +46,13 @@ public class Texture {
     public Bitmap mBitmap = null;
     private int mChannels;           // The number of channels.
 
-    public String mModelPath = null;
+    public int mVertexCount;
+
+    public FloatBuffer mVertexBuffer;
+    public FloatBuffer mTexureBuffer;
+    public FloatBuffer mNormalBuffer;
+
+    public String mFileName = null;
 
     /** buffer holding the texture coordinates */
     private FloatBuffer textureBuffer;
@@ -99,25 +109,32 @@ public class Texture {
 
     public static Texture loadTextureFromApk(String fileName, AssetManager assets) {
 
+        Bitmap bitMap = null;
         InputStream inputStream;
 
         try {
-            if (fileName.contains(".obj")) {
-                Texture texture = new Texture();
+            if (fileName.endsWith(".obj")) {
+                inputStream = assets.open(fileName);
 
-                texture.mModelPath = fileName;
+                RawOpenGLModel openGLModel = new Obj2OpenGL().convert(inputStream);
+                OpenGLModelData modelData = openGLModel.normalize().center().getDataForGLDrawArrays();
 
-                return texture;
+                String name = new String(fileName);
+
+                try {
+                    InputStream stream = assets.open(name.replace(".obj", ".png"), AssetManager.ACCESS_BUFFER);
+                    BufferedInputStream bufferedStream = new BufferedInputStream(stream);
+                    bitMap = BitmapFactory.decodeStream(bufferedStream);
+                } catch (IOException e) {}
+
+                return loadTextureFromObj(fileName, modelData, bitMap);
             } else {
                 inputStream = assets.open(fileName, AssetManager.ACCESS_BUFFER);
 
                 BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
-                Bitmap bitMap = BitmapFactory.decodeStream(bufferedStream);
+                bitMap = BitmapFactory.decodeStream(bufferedStream);
 
-                int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
-                bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
-
-                return loadTextureFromIntBuffer(bitMap, data, bitMap.getWidth(), bitMap.getHeight());
+                return loadTextureFromBitmap(fileName, bitMap);
             }
         } catch (IOException e) {
             Log.e(LOGTAG, "Failed to log texture '" + fileName + "' from APK");
@@ -130,21 +147,26 @@ public class Texture {
     /* Factory function to load a texture from the APK. */
     public static Texture loadTextureFromApk(String fileName) {
 
+        Bitmap bitMap = null;
+
         try {
-            if (fileName.equalsIgnoreCase(".obj")) {
-                Texture texture = new Texture();
+            if (fileName.endsWith(".obj")) {
+                RawOpenGLModel openGLModel = new Obj2OpenGL().convert(new FileInputStream(fileName));
+                OpenGLModelData modelData = openGLModel.normalize().center().getDataForGLDrawArrays();
 
-                texture.mModelPath = fileName;
+                String name = new String(fileName);
 
-                return texture;
+                try {
+                    BufferedInputStream bufferedStream = new BufferedInputStream(new FileInputStream(name.replace(".obj", ".png")));
+                    bitMap = BitmapFactory.decodeStream(bufferedStream);
+                } catch (IOException e) {}
+
+                return loadTextureFromObj(fileName, modelData, bitMap);
             } else {
                 BufferedInputStream bufferedStream = new BufferedInputStream(new FileInputStream(fileName));
-                Bitmap bitMap = BitmapFactory.decodeStream(bufferedStream);
+                bitMap = BitmapFactory.decodeStream(bufferedStream);
 
-                int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
-                bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
-
-                return loadTextureFromIntBuffer(bitMap, data, bitMap.getWidth(), bitMap.getHeight());
+                return loadTextureFromBitmap(fileName, bitMap);
             }
         } catch (IOException e) {
             Log.e(LOGTAG, "Failed to log texture '" + fileName + "' from APK");
@@ -154,7 +176,57 @@ public class Texture {
 
     }
 
-    private static Texture loadTextureFromIntBuffer(Bitmap bitmap, int[] data, int width, int height) {
+    private static Texture loadTextureFromObj(String fileName, OpenGLModelData modelData, Bitmap bitmap) {
+
+        Texture texture = new Texture();
+
+        texture.mFileName = fileName;
+        texture.mBitmap = bitmap;
+
+        float vertices[] = modelData.getVertices();
+
+        texture.mVertexCount = vertices.length / 3;
+
+        ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
+        vbb.order(ByteOrder.nativeOrder());
+        texture.mVertexBuffer = vbb.asFloatBuffer();
+        texture.mVertexBuffer.put(vertices);
+        texture.mVertexBuffer.position(0);
+
+        float texures[] = modelData.getTextureCoordinates();
+
+        ByteBuffer vbb2 = ByteBuffer.allocateDirect(texures.length * 4);
+        vbb2.order(ByteOrder.nativeOrder());
+
+        texture.mTexureBuffer = vbb2.asFloatBuffer();
+        texture.mTexureBuffer.put(texures);
+        texture.mTexureBuffer.position(0);
+
+        float normals[] = modelData.getNormals();
+
+        ByteBuffer vbb3 = ByteBuffer.allocateDirect(normals.length * 4);
+        vbb3.order(ByteOrder.nativeOrder());
+
+        texture.mNormalBuffer = vbb3.asFloatBuffer();
+        texture.mNormalBuffer.put(normals);
+        texture.mNormalBuffer.position(0);
+
+        return texture;
+
+    }
+
+    private static Texture loadTextureFromBitmap(String fileName, Bitmap bitmap) {
+
+        Texture texture = new Texture();
+
+        texture.mFileName = fileName;
+        texture.mBitmap = bitmap;
+
+        return texture;
+
+    }
+
+    private static Texture loadTextureFromIntBuffer(String fileName, int[] data, int width, int height) {
 
         // Convert:
         int numPixels = width * height;
@@ -173,7 +245,7 @@ public class Texture {
         texture.mHeight = height;
         texture.mChannels = 4;
 
-        texture.mBitmap = bitmap;
+        texture.mFileName = fileName;
 
         texture.mData = ByteBuffer.allocateDirect(dataBytes.length).order(ByteOrder.nativeOrder());
         int rowSize = texture.mWidth * texture.mChannels;
@@ -181,8 +253,6 @@ public class Texture {
             texture.mData.put(dataBytes, rowSize * (texture.mHeight - 1 - r), rowSize);
         
         texture.mData.rewind();
-
-        texture.mModelPath = null;
 
         return texture;
 
@@ -197,8 +267,6 @@ public class Texture {
         texture.mData = image.getPixels();
 
         texture.mData.rewind();
-
-        texture.mModelPath = null;
 
         return texture;
 

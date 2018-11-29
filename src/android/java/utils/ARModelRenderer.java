@@ -43,7 +43,6 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.util.Log;
 import com.hoperun.cordova.vuforia.ARVideoRenderer;
-import com.hoperun.cordova.vuforia.LoadOBJAPI;
 
 import java.nio.FloatBuffer;
 import java.util.Vector;
@@ -60,6 +59,14 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
     private int glHCoordinate;
     private int glHTexture;
     private int glHMatrix;
+
+    private int mProgramObj;
+    private int mPositionHandle;
+    private int muMVPMatrixHandle;
+    private int muLightLocationHandle;
+    private int mTextureCoordHandle;
+    private int muTextureHandle;
+    private int mNormalHandle;
 
     private Vector<Texture> mTextures;
 
@@ -88,6 +95,34 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
             "    vec4 nColor = texture2D(vTexture, aCoordinate);  \n"+
             "    gl_FragColor = nColor;                           \n"+
             "}                                                    \n";
+
+    private String VERTEX_SHADER_OBJ =
+            "uniform mat4 uMVPMatrix;                                                    \n"+
+            "attribute vec2 aTextureCoord;                                               \n"+
+            "varying vec2 vTextureCoord;                                                 \n"+
+            "uniform vec3 uLightLocation;                                                \n"+
+            "varying vec4 vDiffuse;                                                      \n"+
+            "attribute vec3 aPosition;                                                   \n"+
+            "attribute vec3 aNormal;                                                     \n"+
+            "void main(){                                                                \n"+
+            "   vec3 normalVectorOrigin = aNormal;                                       \n"+
+            "   vec3 normalVector = normalize((vec4(normalVectorOrigin,1)).xyz);         \n"+
+            "   vec3 vectorLight = normalize(uLightLocation - (vec4(aPosition,1)).xyz);  \n"+
+            "   float factor = max(0.0, dot(normalVector, vectorLight));                 \n"+
+            "   vDiffuse = factor*vec4(1,1,1,1.0);                                       \n"+
+            "   gl_Position = uMVPMatrix * vec4(aPosition,1);                            \n"+
+            "   vTextureCoord = aTextureCoord;                                           \n"+
+            "}                                                                           \n";
+
+    private String FRAGMENT_SHADER_OBJ =
+            "precision mediump float;                                                                                        \n"+
+            "uniform sampler2D uTexture;                                                                                     \n"+
+            "varying vec2 vTextureCoord;                                                                                     \n"+
+            "varying  vec4 vColor;                                                                                           \n"+
+            "varying vec4 vDiffuse;                                                                                          \n"+
+            "void main(){                                                                                                    \n"+
+            "   gl_FragColor = (vDiffuse + vec4(0.6,0.6,0.6,1))*texture2D(uTexture, vec2(vTextureCoord.s,vTextureCoord.t));  \n"+
+            "}                                                                                                               \n";
 
     private final float[] vertices = {
             -1.0f, 1.0f,
@@ -119,12 +154,21 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
         GLES20.glEnable(GLES20.GL_TEXTURE_2D);
 
         mProgram = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+
         glHPosition = GLES20.glGetAttribLocation(mProgram,"vPosition");
         glHCoordinate = GLES20.glGetAttribLocation(mProgram,"vCoordinate");
         glHTexture = GLES20.glGetUniformLocation(mProgram,"vTexture");
         glHMatrix = GLES20.glGetUniformLocation(mProgram,"uMVPMatrix");
 
-        LoadOBJAPI.getInstance().arwSurfaceCreatedModle();
+        mProgramObj = GlUtil.createProgram(VERTEX_SHADER_OBJ, FRAGMENT_SHADER_OBJ);
+
+        mPositionHandle = GLES20.glGetAttribLocation(mProgramObj, "aPosition");
+        mNormalHandle = GLES20.glGetAttribLocation(mProgramObj, "aNormal");
+        mTextureCoordHandle = GLES20.glGetAttribLocation(mProgramObj, "aTextureCoord");
+
+        muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgramObj, "uMVPMatrix");
+        muLightLocationHandle = GLES20.glGetUniformLocation(mProgramObj, "uLightLocation");
+        muTextureHandle = GLES20.glGetUniformLocation(mProgramObj, "uTexture");
 
     }
 
@@ -132,8 +176,6 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 unused, int width, int height) {
 
         GLES20.glViewport(0, 0, width, height);
-
-        LoadOBJAPI.getInstance().arwSurfaceChangedModle(width, height);
 
     }
 
@@ -155,8 +197,6 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
             mClearTexturesTag = false;
 
             if (mTextures != null) mTextures.clear();
-
-            LoadOBJAPI.getInstance().arwSurfaceDestroyedModle();
         }
 
         if (mUpdateDisplayTag) {
@@ -184,34 +224,33 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
         Log.d(LOGTAG, "initRendering");
 
         for (Texture t : mTextures) {
-            if (t.mModelPath == null) {
-                // 生成纹理
-                GLES20.glGenTextures(1, t.mTextureID, 0);
+            // 生成纹理
+            GLES20.glGenTextures(1, t.mTextureID, 0);
 
-                // 生成纹理
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.mTextureID[0]);
+            // 生成纹理
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.mTextureID[0]);
 
-                //设置缩小过滤为使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色
-                GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+            //设置缩小过滤为使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
 
-                //设置放大过滤为使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色
-                GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            //设置放大过滤为使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 
-                //设置环绕方向S，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
-                GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            //设置环绕方向S，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
 
-                //设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
-                GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+            //设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
-                //根据以上指定的参数，生成一个2D纹理
-                if (t.mBitmap != null) {
-                    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, t.mBitmap, 0);
-                } else if (t.mData != null) {
-                    GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, t.mWidth, t.mHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, t.mData);
-                }
-            } else {
-                LoadOBJAPI.getInstance().arwAddModle(new String(t.mModelPath));
+            //根据以上指定的参数，生成一个2D纹理
+            if (t.mBitmap != null) {
+                GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, t.mBitmap, 0);
+                t.mBitmap.recycle();
+            } else if (t.mData != null) {
+                GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, t.mWidth, t.mHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, t.mData);
             }
+
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         }
 
     }
@@ -219,7 +258,7 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
     private void renderModel(float[] matrix, int textureIndex) {
 
         if (ARVideoRenderer.getTrackableResult() && textureIndex >= 0) {
-            if (mTextures.get(textureIndex).mModelPath == null) {
+            if (mTextures.get(textureIndex).mFileName != null && !mTextures.get(textureIndex).mFileName.endsWith(".obj")) {
 
                 GLES20.glUseProgram(mProgram);
 
@@ -238,7 +277,27 @@ public class ARModelRenderer implements GLSurfaceView.Renderer {
 
                 GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
             } else {
-                LoadOBJAPI.getInstance().arwDrawFrameModle(matrix, textureIndex);
+                GLES20.glUseProgram(mProgramObj);
+
+                mTextures.get(textureIndex).mVertexBuffer.position(0);
+                GLES20.glVertexAttribPointer(mPositionHandle, 3, GLES20.GL_FLOAT, false, 3 * 4, mTextures.get(textureIndex).mVertexBuffer);
+                GLES20.glEnableVertexAttribArray(mPositionHandle);
+
+                mTextures.get(textureIndex).mTexureBuffer.position(0);
+                GLES20.glVertexAttribPointer(mTextureCoordHandle, 2, GLES20.GL_FLOAT, false, 2 * 4, mTextures.get(textureIndex).mTexureBuffer);
+                GLES20.glEnableVertexAttribArray(mTextureCoordHandle);
+
+                mTextures.get(textureIndex).mNormalBuffer.position(0);
+                GLES20.glVertexAttribPointer(mNormalHandle, 3, GLES20.GL_FLOAT, false, 3 * 4, mTextures.get(textureIndex).mNormalBuffer);
+                GLES20.glEnableVertexAttribArray(mNormalHandle);
+
+                GLES20.glUniform3f(muLightLocationHandle, 0, 0, 10);
+                GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, matrix, 0);
+
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures.get(textureIndex).mTextureID[0]);
+                GLES20.glUniform1i(muTextureHandle, 0);
+
+                GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, mTextures.get(textureIndex).mVertexCount);
             }
         }
 
