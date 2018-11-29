@@ -114,7 +114,7 @@ public class Texture {
 
         try {
             if (fileName.endsWith(".obj")) {
-                inputStream = assets.open(fileName);
+                inputStream = assets.open(fileName, AssetManager.ACCESS_BUFFER);
 
                 RawOpenGLModel openGLModel = new Obj2OpenGL().convert(inputStream);
                 OpenGLModelData modelData = openGLModel.normalize().center().getDataForGLDrawArrays();
